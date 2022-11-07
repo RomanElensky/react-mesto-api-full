@@ -1,0 +1,113 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/user');
+const ConflictError = require('../errors/сonflict-error');
+const BadRequestError = require('../errors/bad-request-error');
+const UnauthorizedError = require('../errors/unauthorized-error');
+const NotFoundError = require('../errors/not-found-error');
+
+module.exports.getUsers = (req, res, next) => {
+  User.find({})
+    .then((users) => {
+      res.send({ users });
+    })
+    .catch(next);
+};
+
+module.exports.getUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (user) {
+        res.send({ user });
+      } else {
+        throw new NotFoundError('Пользователь по указанному ID не найден');
+      }
+    })
+    .catch(next);
+};
+
+module.exports.getUserById = (req, res, next) => {
+  User.findById(req.params.userId)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Такого пользователя не существует');
+      }
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return next(new BadRequestError('Введены некорректные данные'));
+      }
+      return next(err);
+    });
+};
+
+module.exports.postUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    })
+      .then(() => {
+        res.status(200).send({
+          data: {
+            name, about, avatar, email,
+          },
+        });
+      })
+      .catch((err) => {
+        if (err.name === 'ValidationError') {
+          return next(new BadRequestError('Введены некорректные данные при создании пользователя'));
+        }
+        if (err.code === 11000) {
+          return next(new ConflictError('Данный email уже зарегистрирован'));
+        }
+        return next(err);
+      }));
+};
+
+module.exports.patchProfile = (req, res, next) => {
+  const { name, about } = req.body;
+  User.findOneAndUpdate({ _id: req.user._id }, { name, about }, { new: true, runValidators: true })
+    .then((user) => {
+      res.send({ user });
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError('Введены некорректные данные при обновлении профиля'));
+      }
+      return next(err);
+    });
+};
+
+module.exports.patchAvatar = (req, res, next) => {
+  const { avatar } = req.body;
+  User.findOneAndUpdate({ _id: req.user._id }, { avatar }, { new: true, runValidators: true })
+    .then((user) => {
+      res.send({ user });
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError('Введены некорректные данные при обновлении аватара'));
+      }
+      return next(err);
+    });
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+  return User.findUserbyCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        'some-secret-key',
+        { expiresIn: '7d' },
+      );
+      res.send({ token });
+    })
+    .catch(() => {
+      next(new UnauthorizedError('Ошибка авторизации'));
+    });
+};
