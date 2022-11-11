@@ -1,0 +1,7 @@
+.authorization {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    max-width: 880px;
+    margin: 0 auto;
+}

@@ -79,6 +79,12 @@ class Api {
             .then(this._sendRequest)
     }
 
+    changeLikeStatus(cardId, isLiked) {
+        return isLiked
+          ? this.deleteLike(cardId)
+          : this.addlike(cardId)
+      }
+
 
     _sendRequest(res) {
         if (res.ok) {

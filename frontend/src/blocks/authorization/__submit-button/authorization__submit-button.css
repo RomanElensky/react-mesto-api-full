@@ -1,0 +1,20 @@
+.authorization__submit-button {
+    color: rgb(0, 0, 0);
+    border: none;
+    background-color: #fff;
+    border-radius: 2px;
+    padding: 14px 0 14px;
+    margin-top: 187px;
+    text-align: center;
+    width: 100%;
+    font-family: "Inter", "Arial", sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 22px;
+    cursor: pointer;
+}
+
+.authorization__submit-button:hover {
+    opacity: 0.8;
+}

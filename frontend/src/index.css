@@ -47,3 +47,16 @@
 @import url(./blocks/profile/__image-container/profile__image-container.css);
 @import url(./blocks/card/__trash-button/_active/card__trash-button_active.css);
 @import url(./blocks/card/__trash-button/_hidden/card__trash-button_hidden.css);
+@import url(./blocks/popup/__infotooltip/popup__infotooltip.css);
+@import url(./blocks/popup/__container/__container_infotooltip/popup__container_infotooltip.css);
+@import url(./blocks/header/__email/header__email.css);
+@import url(./blocks/header/__link/header__link.css);
+@import url(./blocks/header/__exit-button/header__exit-button.css);
+@import url(./blocks/header/__section/header__section.css);
+@import url(./blocks/authorization/authorization.css);
+@import url(./blocks/authorization/__input/authorization__input.css);
+@import url(./blocks/authorization/__link/authorization__link.css);
+@import url(./blocks/authorization/__submit-button/authorization__submit-button.css);
+@import url(./blocks/authorization/__title/authorization__title.css);
+@import url(./blocks/authorization/__form/authorization__form.css);
+@import url(./blocks/authorization/__sign-in/authorization__sign-in.css);
