@@ -32,9 +32,8 @@ export function getContent(token) {
    return fetch(`${BASE_URL}/users/me`, {
       method: "GET",
       headers: {
-         'Accept': 'application/json',
          "Content-Type": "application/json",
-         authorize: `Bearer ${token}`,
+         Authorization: `Bearer ${token}`,
       },
    }).then(checkResponse);
 };

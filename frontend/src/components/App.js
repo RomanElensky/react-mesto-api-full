@@ -54,7 +54,7 @@ function App() {
 
   React.useEffect(() => {
     if (isLogin) {
-      Promise.all([api.getProfile(), api.getInitialCards()]).then(([data, cardList]) => {
+      Promise.all([api.getInfo(), api.getCards()]).then(([data, cardList]) => {
         setCurrentUser(data)
         setCards(cardList.reverse())
       })
@@ -63,24 +63,6 @@ function App() {
         });
     }
   }, [isLogin])
-
-  React.useEffect(() => {
-    api.getInfo()
-      .then((res) => {
-        setCurrentUser(res);
-      })
-      .catch((err) => {
-        console.log(`Ошибка ${err}`);
-      });
-
-    api.getCards()
-      .then((cardsData) => {
-        setCards(cardsData);
-      })
-      .catch((err) => {
-        console.log(`Ошибка ${err}`);
-      });
-  }, [])
 
   React.useEffect(() => {
     document.addEventListener('keydown', (e) => {
