@@ -6,8 +6,7 @@ class Api {
         this._baseUrl = baseUrl;
     }
 
-    getInfo() {
-        console.log(this._baseUrl)
+    getProfile() {
         return fetch(`${this._baseUrl}/users/me`, {
             method: 'GET',
             headers: this._headers
@@ -15,7 +14,7 @@ class Api {
             .then(this._sendRequest)
     }
 
-    patchInfo(name, about) {
+    editProfile(name, about) {
         return fetch(`${this._baseUrl}/users/me`, {
             method: 'PATCH',
             headers: this._headers,
@@ -27,7 +26,7 @@ class Api {
             .then(this._sendRequest)
     }
 
-    patchAvatar({avatar}) {
+    editAvatar({ avatar }) {
         return fetch(`${this._baseUrl}/users/me/avatar`, {
             method: 'PATCH',
             headers: this._headers,
@@ -38,7 +37,7 @@ class Api {
             .then(this._sendRequest)
     }
 
-    getCards() {
+    getInitialCards() {
         return fetch(`${this._baseUrl}/cards`, {
             method: 'GET',
             headers: this._headers
@@ -46,7 +45,7 @@ class Api {
             .then(this._sendRequest)
     }
 
-    postCard(name, link) {
+    addCard(name, link) {
         return fetch(`${this._baseUrl}/cards`, {
             method: 'POST',
             headers: this._headers,
@@ -66,7 +65,7 @@ class Api {
             .then(this._sendRequest)
     }
 
-    addlike(id) {
+    addLike(id) {
         return fetch(`${this._baseUrl}/cards/${id}/likes`, {
             method: 'PUT',
             headers: this._headers
@@ -82,13 +81,6 @@ class Api {
             .then(this._sendRequest)
     }
 
-    changeLikeStatus(cardId, isLiked) {
-        return isLiked
-          ? this.deleteLike(cardId)
-          : this.addlike(cardId)
-      }
-
-
     _sendRequest(res) {
         if (res.ok) {
             return res.json()
@@ -98,16 +90,16 @@ class Api {
         }
 
     }
-    
+
 }
 
-const api = new Api({
-    baseUrl: 'http://localhost:3001',
-    headers: {
-        Accept: 'application/json',
-        authorization: `Bearer ${getToken()}`,
-        'Content-Type': 'application/json'
+export const api = new Api({
+    baseUrl: "https://api.mesto.balrok.nomoredomains.icu",
+    headers() {
+       return {
+          Accept: 'application/json',
+          authorization: `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+       }
     }
-})
-
-export { api }
+ });

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
-function Login({ handleLogin }) {
+const Login = ({ handleLogin }) => {
     const [data, setData] = useState({
         email: "",
         password: "",
