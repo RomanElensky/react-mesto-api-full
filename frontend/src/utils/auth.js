@@ -1,4 +1,4 @@
-export const BASE_URL = "https://api.mesto.balrok.nomoredomains.icu";
+export const BASE_URL = "http://localhost:3001";
 
 function checkResponse(res) {
    if (res.ok) {

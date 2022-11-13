@@ -5,6 +5,7 @@ class Api {
     }
 
     getInfo() {
+        console.log(this._baseUrl)
         return fetch(`${this._baseUrl}/users/me`, {
             method: 'GET',
             headers: this._headers
@@ -93,11 +94,13 @@ class Api {
         else {
             Promise.reject(`Ошибка ${res.status}`);
         }
+
     }
+    
 }
 
 const api = new Api({
-    baseUrl: 'https://api.mesto.balrok.nomoredomains.icu',
+    baseUrl: 'http://localhost:3001',
     headers: {
         authorization:  `Bearer ${localStorage.getItem('jwt')}`,
         'Content-Type': 'application/json'

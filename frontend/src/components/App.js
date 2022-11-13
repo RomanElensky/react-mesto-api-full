@@ -13,6 +13,7 @@ import InfoTooltip from "./InfoTooltip";
 import { api } from "../utils/Api";
 import { CurrentUserContext } from "../contexts/CurrentUserContext";
 import { Route, Switch, Redirect, useHistory } from "react-router-dom";
+import { setToken, getToken, removeToken } from "../utils/token";
 import * as auth from "../utils/auth";
 
 function App() {
@@ -48,6 +49,22 @@ function App() {
   }
 
   React.useEffect(() => {
+    checkToken();
+  }, []);
+
+  React.useEffect(() => {
+    if (isLogin) {
+      Promise.all([api.getProfile(), api.getInitialCards()]).then(([data, cardList]) => {
+        setCurrentUser(data)
+        setCards(cardList.reverse())
+      })
+        .catch((err) => {
+          console.log(`Ошибка ${err}`);
+        });
+    }
+  }, [isLogin])
+
+  React.useEffect(() => {
     api.getInfo()
       .then((res) => {
         setCurrentUser(res);
@@ -73,49 +90,44 @@ function App() {
     });
   }, []);
 
-  React.useEffect(() => {
-    const chekToken = () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        auth.getContent(token)
-          .then((res) => {
-            if (res && res.data.email) {
-              setData({
-                email: res.data.email,
-              });
-              setIsLogin(true);
-              history.push("/");
-            } else {
-              history.push("/sign-in");
-            }
-          })
-          .catch((err) => {
-            console.log(`Ошибка ${err}`);
-          });
-      }
-    };
-    chekToken();
-  }, [history]);
+  function checkToken() {
+    const jwt = getToken();
+    if (jwt) {
+      auth.getContent(jwt)
+        .then((res) => {
+          if (res && res.email) {
+            setData({
+              email: res.email,
+            });
+            setIsLogin(true);
+            history.push("/");
+          } else {
+            history.push("/sign-in");
+          }
+        })
+        .catch((err) => console.error(err));
+    }
+  };
 
   function handleLogin(email, password) {
     auth.authorize(email, password)
       .then((data) => {
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-          setData({
-            email: data.email,
-          });
-          setIsLogin(true);
-          history.replace({ pathname: "/" });
-        }
+        setToken(data.token);
+        setData({
+          email: data.email,
+        });
+        setIsLogin(true);
+        history.replace({ pathname: "/" });
       })
       .catch((res) => {
         console.log(res);
+        setTooltipPopup(true);
+        setOnInfoTooltip(false);
       });
   };
 
   function handleLogout() {
-    localStorage.removeItem("token");
+    removeToken();
     setData({
       email: "",
       password: "",
@@ -140,8 +152,10 @@ function App() {
 
   function handleUpdateUser(name, about) {
     api.patchInfo(name, about)
-      .then((item) => {
-        setCurrentUser(item);
+      .then(({ name, about }) => {
+        setCurrentUser((prevUserState) => {
+          return { ...prevUserState, name, about };
+        });
         closeAllPopups();
       })
       .catch((err) =>
@@ -150,8 +164,10 @@ function App() {
 
   function handleUpdateAvatar(avatar) {
     api.patchAvatar(avatar)
-      .then((item) => {
-        setCurrentUser(item);
+      .then(({ avatar }) => {
+        setCurrentUser((prevUserState) => {
+          return { ...prevUserState, avatar };
+        });
         closeAllPopups();
       })
       .catch((err) =>
@@ -171,11 +187,11 @@ function App() {
   function handleCardLike(card) {
     const isLiked = card.likes.some(i => i._id === currentUser._id);
     api.changeLikeStatus(card._id, isLiked)
-    .then((newCard) => {
-      const newCards = cards.map((item) => (item._id === card._id ? newCard : item));
-      setCards(newCards);
-    })
-    .catch((err) =>
+      .then((newCard) => {
+        const newCards = cards.map((item) => (item._id === card._id ? newCard : item));
+        setCards(newCards);
+      })
+      .catch((err) =>
         console.log(`Ошибка ${err}`))
   }
 
