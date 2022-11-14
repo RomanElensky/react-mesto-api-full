@@ -100,7 +100,7 @@ class Api {
 }
 
 const api = new Api({
-    baseUrl: 'http://localhost:3001',
+    baseUrl: 'api.mesto.balrok.nomoredomains.icu',
     headers: {
         authorization:  `Bearer ${localStorage.getItem('jwt')}`,
         'Content-Type': 'application/json'
