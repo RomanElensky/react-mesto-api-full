@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const validator = require('validator');
-const UnauthorizedError = require('../errors/unauthorized-error');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -20,40 +19,36 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator(link) {
-        return /^(https?:\/\/)?([\w-]{1,32}\.[\w-]{1,32})[^\s@]*/.test(link);
-      },
+      validator: (v) => validator.isURL(v),
       message: 'Некорректная ссылка',
     },
   },
   email: {
     type: String,
-    unique: true,
     required: true,
+    unique: true,
     validate: {
-      validator: (email) => validator.isEmail(email),
+      validator: (v) => validator.isEmail(v),
       message: 'Некорректный email',
     },
   },
   password: {
     type: String,
-    required: true,
+    requred: true,
     select: false,
   },
-}, {
-  versionKey: false,
-});
+}, { versionKey: false });
 
-userSchema.statics.findUserbyCredentials = function findUserbyCredentials(email, password) {
+userSchema.statics.findUserByCredentials = function findUserByCredentials(email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new UnauthorizedError('Неверные данные для входа'));
+        return Promise.reject(new Error({ message: 'Неверный логин или пароль' }));
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new UnauthorizedError('Неверные данные для входа'));
+            return Promise.reject(new Error({ message: 'Неверный логин или пароль' }));
           }
           return user;
         });

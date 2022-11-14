@@ -1,5 +1,6 @@
 .footer {
-    display: flex;
-    justify-content: flex-start;
-    width: 880px;
+   display: flex;
+   justify-content: flex-start;
+   width: 880px;
+   margin: 66px auto 0;
 }

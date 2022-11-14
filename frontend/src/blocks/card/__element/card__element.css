@@ -1,8 +1,8 @@
 .card__element {
-    background-color: white;
-    border-radius: 10px;
-    width: 282px;
-    display: grid;
-    overflow: hidden;
-    position: relative;
+   background-color: white;
+   border-radius: 10px;
+   width: 282px;
+   display: grid;
+   overflow: hidden;
+   position: relative;
 }

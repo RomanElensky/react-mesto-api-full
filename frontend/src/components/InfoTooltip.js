@@ -8,14 +8,11 @@ function InfoTooltip({ isOpen, onClose, onInfoTooltip }) {
          <div className="popup__container popup__container_infotooltip">
             <button
                type="button"
-               className="popup__close-button"
+               className="popup__close"
                onClick={onClose}
             ></button>
-            <img
-               src={onInfoTooltip ? success : fail}
-               alt="Значок"
-            />
-            <p className="popup__infotooltip">
+            <img src={onInfoTooltip ? success : fail} alt="Значок" />
+            <p className="popup__profile_tooltip">
                {onInfoTooltip
                   ? `Вы успешно зарегистрировались!`
                   : `Что-то пошло не так! Попробуйте ещё раз.`}

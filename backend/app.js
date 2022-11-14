@@ -1,44 +1,34 @@
+require('dotenv').config();
+
 const express = require('express');
 
 const app = express();
 
 const mongoose = require('mongoose');
 
-require('dotenv').config();
-
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const { errors, celebrate, Joi } = require('celebrate');
 
-const { errors } = require('celebrate');
-
-const bodyParser = require('body-parser');
-
-const { login, postUser } = require('./controllers/users');
-const routerUsers = require('./routes/users');
-const routerCards = require('./routes/cards');
 const auth = require('./middlewares/auth');
-const { validatePostUser, validateLogin } = require('./middlewares/validators');
+const { userRoutes } = require('./routes/users');
+const { cardRoutes } = require('./routes/cards');
+const { createUser, login } = require('./controllers/users');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const NotFoundError = require('./errors/not-found-error');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3001 } = process.env;
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use(cors({
-  origin: [
-    'https://mesto.balrok.nomoredomains.icu',
-    'http://mesto.balrok.nomoredomains.icu',
-    'https://api.mesto.balrok.nomoredomains.icu',
-    'http://api.mesto.balrok.nomoredomains.icu',
-    'http://localhost:3000',
-    'https://localhost:3000',
-    'http://localhost:3001',
-    'https://localhost:3001',
-  ],
+const corsOptions = {
+  origin: '*',
   credentials: true,
-}));
+  optionSuccessStatus: 200,
+};
 
+app.use(cors(corsOptions));
+app.use(cors());
+app.use(cookieParser());
+app.use(express.json());
 app.use(requestLogger);
 
 app.get('/crash-test', () => {
@@ -47,26 +37,44 @@ app.get('/crash-test', () => {
   }, 0);
 });
 
-app.post('/signin', validateLogin, login);
-app.post('/signup', validatePostUser, postUser);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().regex(/https?:\/\/(www\.)?[-a-zA-z0-9@:%_\\+.~#?&=]+\.[a-zA-Z0-9()]+([-a-zA-Z0-9()@:%_\\+.~#?&=]*)/),
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), createUser);
+
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), login);
 
 app.use(auth);
 
-app.use('/users', routerUsers);
-app.use('/cards', routerCards);
-app.use('*', () => {
-  throw new NotFoundError('Страница не найдена');
+app.use('/users', auth, userRoutes);
+app.use('/cards', auth, cardRoutes);
+
+app.all('*', auth, (_req, _res, next) => {
+  next(new NotFoundError('Страница не найдена'));
 });
 
 app.use(errorLogger);
-
 app.use(errors());
 
-app.use((err, req, res, next) => {
+app.use((err, _req, res, next) => {
   const { statusCode = 500, message } = err;
-  res.status(statusCode).send({
-    message: statusCode === 500 ? 'Ошибка сервера' : message,
-  });
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'Ошибка сервера'
+        : message,
+    });
   next();
 });
 

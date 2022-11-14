@@ -14,4 +14,6 @@
     color: white;
 }
 
-.authorization__input::placeholder {color: #CCCCCC;}
+.authorization__input::placeholder {
+    color: #CCCCCC;
+}

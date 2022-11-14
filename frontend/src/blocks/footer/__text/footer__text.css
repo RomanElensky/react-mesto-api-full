@@ -1,20 +1,20 @@
 .footer__text {
-    font-family: "Inter", "Arial", sans-serif;
-    font-style: normal;
-    font-weight: normal;
-    font-size: 18px;
-    line-height: 22px;
-    color: #545454;
-    width: 318px;
-    margin: 0 auto 60px 0;
+   font-family: "Inter", "Arial", sans-serif;
+   font-style: normal;
+   font-weight: normal;
+   font-size: 18px;
+   line-height: 22px;
+   color: #545454;
+   width: 318px;
+   margin: 0 auto 60px 0;
 }
 
 @media screen and (max-width: 670px) {
-    .footer__text {
-        font-size: 14px;
-        line-height: 17px;
-        width: 282px;
-        margin: 0 auto;
-        padding-bottom: 36px;
-    }
+   .footer__text {
+      font-size: 14px;
+      line-height: 17px;
+      width: 282px;
+      margin: 0 auto;
+      padding-bottom: 36px;
+   }
 }

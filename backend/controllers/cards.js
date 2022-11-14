@@ -1,44 +1,50 @@
 const Card = require('../models/card');
-const BadRequestError = require('../errors/bad-request-error');
-const ForbiddenError = require('../errors/forbidden-error');
 const NotFoundError = require('../errors/not-found-error');
+const ForbiddenError = require('../errors/forbidden-error');
+const BadRequestError = require('../errors/bad-request-error');
 
 module.exports.getCards = (req, res, next) => {
   Card.find({})
-    .then((cards) => {
-      res.send(cards);
-    })
+    .then((cards) => res.status(200).send(cards))
     .catch(next);
 };
 
-module.exports.postCard = (req, res, next) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
-
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
-      res.send(card);
+      res.status(201).send({
+        name: card.name, link: card.link, owner: card.owner, _id: card._id, likes: card.likes,
+      });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return next(new BadRequestError('Переданы некорректные данные при создании карточки'));
+        next(new BadRequestError('Переданы некорректные данные при создании карточки'));
+      } else {
+        next(err);
       }
-      return next(err);
     });
 };
 
-module.exports.deleteCard = (req, res, next) => {
+module.exports.deleteCardId = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .orFail(() => new NotFoundError('Карточка с указанным ID не найдена'))
     .then((card) => {
-      if (String(card.owner) !== req.user._id) {
-        return next(new ForbiddenError('Эта карточка не принадлежит данному ID'));
+      if (!card) {
+        return next(new NotFoundError('Карточка с указанным ID не найдена'));
       }
-      return card.remove()
-        .then(() => {
-          res.send({ message: 'Карточка удалена' });
-        });
+      if (String(req.user._id) !== String(card.owner)) {
+        return next(new ForbiddenError('Нет доступа'));
+      }
+      return Card.findByIdAndRemove(req.params.cardId)
+        .then((cardItem) => res.status(200).send({ data: cardItem, message: 'Карточка  удалена' }));
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Эта карточка не принадлежит данному ID'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.likeCard = (req, res, next) => {
@@ -48,37 +54,37 @@ module.exports.likeCard = (req, res, next) => {
     { new: true },
   )
     .then((card) => {
-      if (card) {
-        res.send({ card });
-      } else {
-        throw new NotFoundError('Передан несуществующий ID карточки');
+      if (!card) {
+        return next(new NotFoundError('Передан несуществующий ID карточки'));
       }
+      return res.status(200).send({ card, likes: card.likes.length });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        return next(new BadRequestError('Произошла ошибка при поставке лайка'));
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Произошла ошибка при поставке лайка'));
+      } else {
+        next(err);
       }
-      return next(err);
     });
 };
 
-module.exports.deleteLike = (req, res, next) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
     .then((card) => {
-      if (card) {
-        res.send({ card });
-      } else {
-        throw new NotFoundError('Передан несуществующий ID карточки');
+      if (!card) {
+        return next(new NotFoundError('Передан несуществующий ID карточки'));
       }
+      return res.status(200).send({ card, likes: card.likes.length });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        return next(new BadRequestError('Произошла ошибка при поставке лайка'));
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Произошла ошибка при поставке лайка'));
+      } else {
+        next(err);
       }
-      return next(err);
     });
 };
