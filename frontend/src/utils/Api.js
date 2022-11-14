@@ -1,12 +1,11 @@
-import { getToken } from "../utils/token";
-
 class Api {
     constructor({ headers, baseUrl }) {
         this._headers = headers;
         this._baseUrl = baseUrl;
     }
 
-    getProfile() {
+    getInfo() {
+        console.log(this._baseUrl)
         return fetch(`${this._baseUrl}/users/me`, {
             method: 'GET',
             headers: this._headers
@@ -14,7 +13,7 @@ class Api {
             .then(this._sendRequest)
     }
 
-    editProfile(name, about) {
+    patchInfo(name, about) {
         return fetch(`${this._baseUrl}/users/me`, {
             method: 'PATCH',
             headers: this._headers,
@@ -26,7 +25,7 @@ class Api {
             .then(this._sendRequest)
     }
 
-    editAvatar({ avatar }) {
+    patchAvatar({avatar}) {
         return fetch(`${this._baseUrl}/users/me/avatar`, {
             method: 'PATCH',
             headers: this._headers,
@@ -37,7 +36,7 @@ class Api {
             .then(this._sendRequest)
     }
 
-    getInitialCards() {
+    getCards() {
         return fetch(`${this._baseUrl}/cards`, {
             method: 'GET',
             headers: this._headers
@@ -45,7 +44,7 @@ class Api {
             .then(this._sendRequest)
     }
 
-    addCard(name, link) {
+    postCard(name, link) {
         return fetch(`${this._baseUrl}/cards`, {
             method: 'POST',
             headers: this._headers,
@@ -65,7 +64,7 @@ class Api {
             .then(this._sendRequest)
     }
 
-    addLike(id) {
+    addlike(id) {
         return fetch(`${this._baseUrl}/cards/${id}/likes`, {
             method: 'PUT',
             headers: this._headers
@@ -81,6 +80,13 @@ class Api {
             .then(this._sendRequest)
     }
 
+    changeLikeStatus(cardId, isLiked) {
+        return isLiked
+          ? this.deleteLike(cardId)
+          : this.addlike(cardId)
+      }
+
+
     _sendRequest(res) {
         if (res.ok) {
             return res.json()
@@ -90,16 +96,15 @@ class Api {
         }
 
     }
-
+    
 }
 
-export const api = new Api({
-    baseUrl: "https://api.mesto.balrok.nomoredomains.icu",
-    headers() {
-       return {
-          Accept: 'application/json',
-          authorization: `Bearer ${getToken()}`,
-          'Content-Type': 'application/json'
-       }
+const api = new Api({
+    baseUrl: 'http://localhost:3001',
+    headers: {
+        authorization:  `Bearer ${localStorage.getItem('jwt')}`,
+        'Content-Type': 'application/json'
     }
- });
+})
+
+export { api }

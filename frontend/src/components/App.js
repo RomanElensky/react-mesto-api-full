@@ -17,14 +17,14 @@ import { setToken, getToken, removeToken } from "../utils/token";
 import * as auth from "../utils/auth";
 
 function App() {
-  const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
-  const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);
-  const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = React.useState(false);
-  const [selectedCard, setSelectedCard] = React.useState({});
+  const [isEditProfilePopupOpen, setEditProfilePopupOpen] = React.useState(false);
+  const [isAddPlacePopupOpen, setAddPlacePopupOpen] = React.useState(false);
+  const [isEditAvatarPopupOpen, setEditAvatarPopupOpen] = React.useState(false);
+  const [selectedCard, setSelectedCard] = React.useState(null);
   const [currentUser, setCurrentUser] = React.useState({});
   const [cards, setCards] = React.useState([]);
   const [isTooltipPopupOpen, setTooltipPopup] = React.useState(false);
-  const [onInfoTooltip, setOnInfoTooltip] = React.useState({});
+  const [onInfoTooltip, setOnInfoTooltip] = React.useState(false);
   const [isLogin, setIsLogin] = React.useState(false);
   const [data, setData] = React.useState({
     email: "",
@@ -33,45 +33,54 @@ function App() {
 
   const history = useHistory();
 
-
-  function handleEditAvatarClick() {
-    setIsEditAvatarPopupOpen(true);
-  }
-
-  function handleEditProfileClick() {
-    setIsEditProfilePopupOpen(true);
-  }
-
-  function handleAddPlaceClick() {
-    setIsAddPlacePopupOpen(true);
-  }
-
-  function closeAllPopups() {
-    setIsEditAvatarPopupOpen(false);
-    setIsAddPlacePopupOpen(false);
-    setIsEditProfilePopupOpen(false);
-    setSelectedCard({});
+  const handleEditAvatarClick = () => setEditAvatarPopupOpen(true);
+  const handleEditProfileClick = () => setEditProfilePopupOpen(true);
+  const handleAddPlaceClick = () => setAddPlacePopupOpen(true);
+  const closeAllPopups = () => {
+    setAddPlacePopupOpen(false);
+    setEditProfilePopupOpen(false);
+    setEditAvatarPopupOpen(false);
     setTooltipPopup(false);
-  }
+    setSelectedCard(null);
+  };
 
   function handleCardClick(card) {
     setSelectedCard(card);
   }
 
   React.useEffect(() => {
-    tokenCheck();
+    checkToken();
   }, []);
 
   React.useEffect(() => {
     if (isLogin) {
-      Promise.all([api.getProfile(), api.getInitialCards()]).then(([data, cardList]) => {
+      Promise.all([api.getInfo(), api.getCards()]).then(([data, cardList]) => {
         setCurrentUser(data)
         setCards(cardList.reverse())
       })
-        .catch((err) =>
-          console.log(`Ошибка ${err}`))
+        .catch((err) => {
+          console.log(`Ошибка ${err}`);
+        });
     }
   }, [isLogin])
+
+  React.useEffect(() => {
+    api.getInfo()
+      .then((res) => {
+        setCurrentUser(res);
+      })
+      .catch((err) => {
+        console.log(`Ошибка ${err}`);
+      });
+
+    api.getCards()
+      .then((cardsData) => {
+        setCards(cardsData);
+      })
+      .catch((err) => {
+        console.log(`Ошибка ${err}`);
+      });
+  }, [])
 
   React.useEffect(() => {
     document.addEventListener('keydown', (e) => {
@@ -81,7 +90,7 @@ function App() {
     });
   }, []);
 
-  function tokenCheck() {
+  function checkToken() {
     const jwt = getToken();
     if (jwt) {
       auth.getContent(jwt)
@@ -96,8 +105,7 @@ function App() {
             history.push("/sign-in");
           }
         })
-        .catch((err) =>
-          console.log(`Ошибка ${err}`))
+        .catch((err) => console.error(err));
     }
   };
 
@@ -118,7 +126,7 @@ function App() {
       });
   };
 
-  function signOut() {
+  function handleLogout() {
     removeToken();
     setData({
       email: "",
@@ -143,21 +151,19 @@ function App() {
   };
 
   function handleUpdateUser(name, about) {
-    api.editProfile(name, about)
+    api.patchInfo(name, about)
       .then(({ name, about }) => {
         setCurrentUser((prevUserState) => {
           return { ...prevUserState, name, about };
         });
-
         closeAllPopups();
       })
       .catch((err) =>
-        console.log(`Ошибка ${err}`)
-      );
+        console.log(`Ошибка ${err}`))
   };
 
   function handleUpdateAvatar(avatar) {
-    api.editAvatar(avatar)
+    api.patchAvatar(avatar)
       .then(({ avatar }) => {
         setCurrentUser((prevUserState) => {
           return { ...prevUserState, avatar };
@@ -165,41 +171,35 @@ function App() {
         closeAllPopups();
       })
       .catch((err) =>
-        console.log(`Ошибка ${err}`)
-      );
+        console.log(`Ошибка ${err}`))
   };
 
-  const handleAddPlaceSubmit = (name, link) => {
-    api.addCard(name, link)
+  function handleAddPlaceSubmit(name, link) {
+    api.postCard(name, link)
       .then((newCard) => {
         setCards([newCard, ...cards]);
         closeAllPopups();
       })
       .catch((err) =>
-        console.log(`Ошибка ${err}`)
-      );
+        console.log(`Ошибка ${err}`))
   };
 
   function handleCardLike(card) {
-    const isLiked = card.likes.some(i => i === currentUser._id);
-    const changeLikeCardStatus = !isLiked
-      ? api.addLike(card._id)
-      : api.deleteLike(card._id);
-    changeLikeCardStatus
+    const isLiked = card.likes.some(i => i._id === currentUser._id);
+    api.changeLikeStatus(card._id, isLiked)
       .then((newCard) => {
-        setCards((item) =>
-          item.map((c) => (c._id === card._id ? newCard.card : c))
-        );
+        const newCards = cards.map((item) => (item._id === card._id ? newCard : item));
+        setCards(newCards);
       })
       .catch((err) =>
         console.log(`Ошибка ${err}`))
-  };
+  }
 
 
   function handleCardDelete(card) {
     api.deleteCard(card._id)
       .then(() => {
-        setCards((cards) => cards.filter((c) => c._id !== card._id));
+        setCards((state) => state.filter((c) => c._id !== card._id));
       })
       .catch((err) =>
         console.log(`Ошибка ${err}`))
@@ -209,21 +209,21 @@ function App() {
     <div className="page">
       <CurrentUserContext.Provider value={currentUser}>
         <Header
-          signOut={signOut}
+          handleLogout={handleLogout}
           loggedIn={isLogin}
           email={data.email}
         />
         <Switch>
           <ProtectedRoute
-            component={Main}
-            loggedIn={isLogin}
-            onEditProfile={handleEditProfileClick}
             onEditAvatar={handleEditAvatarClick}
+            onEditProfile={handleEditProfileClick}
             onAddPlace={handleAddPlaceClick}
-            cards={cards}
+            onCardClick={handleCardClick}
             onCardLike={handleCardLike}
             onCardDelete={handleCardDelete}
-            onCardClick={handleCardClick}
+            cards={cards}
+            component={Main}
+            loggedIn={isLogin}
             path="/"
             exact
           />
