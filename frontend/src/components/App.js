@@ -83,7 +83,6 @@ function App() {
                 .then((res) => {
                     if (res && res.email) {
                         setCurrentUser(res);
-                        setProfileEmail(res.email);
                         setData({
                             email: res.email,
                         });
