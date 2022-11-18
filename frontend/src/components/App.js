@@ -97,10 +97,7 @@ function App() {
 
     function signOut() {
         removeToken();
-        setData({
-            email: "",
-            password: "",
-        });
+        setProfileEmail("");
         setIsLogin(false);
         history.push("/sign-in");
     };
