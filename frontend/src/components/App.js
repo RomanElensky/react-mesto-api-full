@@ -29,10 +29,6 @@ function App() {
     const [onInfoTooltip, setOnInfoTooltip] = React.useState({});
     const [isLogin, setIsLogin] = React.useState(false);
     const [profileEmail, setProfileEmail] = React.useState("");
-    const [data, setData] = React.useState({
-        email: "",
-        password: "",
-    });
 
     const history = useHistory();
 
