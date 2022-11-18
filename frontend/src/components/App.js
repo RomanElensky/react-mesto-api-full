@@ -29,6 +29,10 @@ function App() {
     const [onInfoTooltip, setOnInfoTooltip] = React.useState({});
     const [isLogin, setIsLogin] = React.useState(false);
     const [profileEmail, setProfileEmail] = React.useState("");
+    const [data, setData] = React.useState({
+        email: "",
+        password: "",
+    });
 
     const history = useHistory();
 
@@ -77,9 +81,12 @@ function App() {
         if (jwt) {
             auth.getContent(jwt)
                 .then((res) => {
-                    if (res) {
+                    if (res && res.email) {
                         setCurrentUser(res);
                         setProfileEmail(res.email);
+                        setData({
+                            email: res.email,
+                        });
                         setIsLogin(true);
                         history.push("/");
                     } else {
@@ -95,6 +102,10 @@ function App() {
     function signOut() {
         removeToken();
         setProfileEmail("");
+        setData({
+            email: "",
+            password: "",
+        });
         setIsLogin(false);
         history.push("/sign-in");
     };
@@ -104,6 +115,9 @@ function App() {
             .then((data) => {
                 setProfileEmail(email);
                 setToken(data.token);
+                setData({
+                    email: data.email,
+                });
                 setIsLogin(true);
                 history.replace({ pathname: "/" });
             })
