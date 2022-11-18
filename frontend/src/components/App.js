@@ -77,7 +77,8 @@ function App() {
         if (jwt) {
             auth.getContent(jwt)
                 .then((res) => {
-                    if (res && res.email) {
+                    if (res) {
+                        setCurrentUser(res);
                         setProfileEmail(res.email);
                         setIsLogin(true);
                         history.push("/");
