@@ -28,6 +28,7 @@ function App() {
     const [isTooltipPopupOpen, setTooltipPopup] = React.useState(false);
     const [onInfoTooltip, setOnInfoTooltip] = React.useState({});
     const [isLogin, setIsLogin] = React.useState(false);
+    const [profileEmail, setProfileEmail] = React.useState("");
     const [data, setData] = React.useState({
         email: "",
         password: "",
@@ -81,9 +82,7 @@ function App() {
             auth.getContent(jwt)
                 .then((res) => {
                     if (res && res.email) {
-                        setData({
-                            email: res.email,
-                        });
+                        setProfileEmail(res.email);
                         setIsLogin(true);
                         history.push("/");
                     } else {
@@ -109,6 +108,7 @@ function App() {
     function handleLogin(email, password) {
         auth.authorize(email, password)
             .then((data) => {
+                setProfileEmail(email);
                 setToken(data.token);
                 setData({
                     email: data.email,
@@ -204,7 +204,7 @@ function App() {
             <CurrentUserContext.Provider value={currentUser}>
                 <Header
                     loggedIn={isLogin}
-                    email={data.email}
+                    email={profileEmail}
                     signOut={signOut}
                 />
                 <Switch>
