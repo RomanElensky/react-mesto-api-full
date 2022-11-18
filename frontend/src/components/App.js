@@ -110,9 +110,6 @@ function App() {
             .then((data) => {
                 setProfileEmail(email);
                 setToken(data.token);
-                setData({
-                    email: data.email,
-                });
                 setIsLogin(true);
                 history.replace({ pathname: "/" });
             })
