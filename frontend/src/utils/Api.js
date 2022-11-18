@@ -92,7 +92,7 @@ class Api {
 }
 
 export const api = new Api({
-   baseUrl: "http://localhost:3001",
+   baseUrl: "api.mesto.balrok.nomoredomains.icu",
    headers() {
       return {
          Accept: 'application/json',
